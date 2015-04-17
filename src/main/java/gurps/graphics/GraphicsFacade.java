@@ -173,12 +173,15 @@ public class GraphicsFacade {
 
     public void drawTextInput(TextInput textInput, ComponentListener listener) {
         if(textInput.getTextField() == null) {
-            textInput.setTextField(new TextField(this.getGameContainer(), DEFAULT_MENU_FONT, 400, 300, 100, 100));
+            Integer width = this.getWidth();
+            Integer descriptionX = (int) (width * Configuration.MID_FIELD_WIDTH_RATIO);
+            Integer descriptionY = (int) (this.getHeight() * Configuration.MID_FIELD_HEIGTH_RATIO);
+            Integer descriptionWidth = Configuration.FIELD_WIDTH;
+            Integer descriptionHeight = Configuration.FIELD_HEIGTH;
+            textInput.setTextField(new TextField(this.getGameContainer(), DEFAULT_MENU_FONT, descriptionX, descriptionY,
+                    descriptionWidth, descriptionHeight));
         }
         graphics.setColor(Color.white);
-
-        FileSelector fileSelector = new FileSelector(null, null);
-        fileSelector.rende
 
 
         TextField textField = textInput.getTextField();

@@ -6,6 +6,7 @@ import gurps.graphics.components.MenuLink;
 import gurps.graphics.components.TextInput;
 import gurps.states.State;
 import org.newdawn.slick.GameContainer;
+import org.newdawn.slick.Input;
 import org.newdawn.slick.gui.AbstractComponent;
 
 import javax.swing.*;
@@ -40,7 +41,7 @@ public class UniverseGearState extends State {
     public void stateDraw() {
         GraphicsFacade facade = getFacade();
         facade.drawMenuBackground();
-        //facade.drawTextInput(this.getDescription(), this);
+        facade.drawTextInput(this.getDescription(), this);
         facade.drawSubVerticalMenu();
         facade.drawContentBox();
         facade.drawSubMenu(this, this.getTitle(), this.getSubMenuTitle(), this.getBackLink());
@@ -49,6 +50,8 @@ public class UniverseGearState extends State {
     public void componentActivated(AbstractComponent source) {
         if(this.getBackLink().getMouseOverArea().equals(source)){
             this.setNextState(new UniverseState());
+        } else if(this.getDescription().getTextField().equals(source)){
+            
         }
     }
 

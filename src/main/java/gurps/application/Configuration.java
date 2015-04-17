@@ -34,4 +34,8 @@ public class Configuration {
     public static final Float MENU_HEADING_BACK_LINK_WIDTH_RADIO_SPACE = 0.2f;
     public static final Float MENU_SUB_MENU_HEIGHT_RATIO = 0.22f;
     public static final Float MENU_CONTENT_BOX_HEIGHT_RATIO = 0.25f;
+    public static final Float MID_FIELD_WIDTH_RATIO = 0.3f;
+    public static final Float MID_FIELD_HEIGTH_RATIO = 0.3f;
+    public static final Integer FIELD_HEIGTH = 30;
+    public static final Integer FIELD_WIDTH = 400;
 }
