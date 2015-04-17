@@ -1,15 +1,20 @@
 package gurps.graphics;
 
-import de.matthiasmann.twl.FileSelector;
+import de.matthiasmann.twl.GUI;
+import de.matthiasmann.twl.Table;
+import de.matthiasmann.twl.renderer.lwjgl.LWJGLRenderer;
 import gurps.application.Configuration;
-import gurps.graphics.components.MenuLink;
-import gurps.graphics.components.TextInput;
+import gurps.application.Label;
+import gurps.graphics.components.*;
+import org.lwjgl.LWJGLException;
 import org.newdawn.slick.*;
+import org.newdawn.slick.Font;
+import org.newdawn.slick.Graphics;
+import org.newdawn.slick.Image;
 import org.newdawn.slick.gui.ComponentListener;
 import org.newdawn.slick.gui.MouseOverArea;
 import org.newdawn.slick.gui.TextField;
 
-import javax.swing.*;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -26,8 +31,12 @@ public class GraphicsFacade {
     private static final Logger LOGGER = Logger.getLogger(GraphicsFacade.class.getName());
     private static final Font DEFAULT_MENU_FONT = new TrueTypeFont(new java.awt.Font(Configuration.MENU_FONT_NAME,
             Configuration.MENU_FONT_STYLE, Configuration.MENU_FONT_SIZE), false);
+    private static final Font DEFAULT_FIELD_FONT = new TrueTypeFont(new java.awt.Font(Configuration.FIELD_FONT_NAME,
+            Configuration.FIELD_FONT_STYLE, Configuration.FIELD_FONT_SIZE), false);
     private static final Font MOUSE_OVER_MENU_FONT = new TrueTypeFont(new java.awt.Font(Configuration.MENU_FONT_NAME,
             Configuration.MENU_FONT_MOUSE_OVER_STYLE, Configuration.MENU_MOUSE_OVER_FONT_SIZE), false);
+    private Image BGImage;
+    private GUI gui;
 
     public GraphicsFacade() {
     }
@@ -53,6 +62,9 @@ public class GraphicsFacade {
         Float leftBoarderLineX = width * Configuration.MENU_LEFT_BOARDER_SCREEN_RATIO;
         Float rightBoarderLineX = width * Configuration.MENU_RIGHT_BOARDER_SCREEN_RATIO;
         this.drawPairOfVerticalLines(0, this.getHeight(), leftBoarderLineX, rightBoarderLineX);
+
+        graphics.setColor(Configuration.MENU_TRANSPARENT_BACKGROUND_COLOR);
+        graphics.fillRect(leftBoarderLineX, 0, rightBoarderLineX - leftBoarderLineX, this.getHeight());
     }
 
     public void drawSubVerticalMenu() {
@@ -62,6 +74,9 @@ public class GraphicsFacade {
         int height = (int) (this.getHeight() * Configuration.MENU_SUB_MENU_HEIGHT_RATIO);
         this.drawPairOfVerticalLines(0, height, leftBoarderLineX, rightBoarderLineX);
         graphics.drawLine(leftBoarderLineX, height, rightBoarderLineX, height);
+
+        graphics.setColor(Configuration.MENU_TRANSPARENT_BACKGROUND_COLOR);
+        graphics.fillRect(leftBoarderLineX, 0, rightBoarderLineX - leftBoarderLineX, height);
     }
 
     private void drawPairOfVerticalLines(Integer initialY, Integer finalY, float leftBoarderLineX, float rightBoarderLineX) {
@@ -90,13 +105,12 @@ public class GraphicsFacade {
         return this.height;
     }
 
-    public void drawMenuBackground() {
-        Graphics graphics = this.getGraphics();
-        graphics.setBackground(Configuration.MENU_BACKGROUND_COLOR);
-        graphics.clear();
+    public void drawBackground() {
+        this.getBGImage().draw(0, 0, this.getWidth(), this.getHeight());
     }
 
     public void drawMenuHeadings(ComponentListener listener, String title, List<MenuLink> links){
+        this.drawVerticalMenu();
         this.drawMenuHeadings(listener, title, null, links);
     }
 
@@ -146,12 +160,13 @@ public class GraphicsFacade {
         graphics.drawString(text, x, y);
 
         mouseOverArea = link.getMouseOverArea();
-        mouseOverArea.setNormalColor(Color.transparent);
-        mouseOverArea.setMouseOverColor(Color.transparent);
+        mouseOverArea.setNormalColor(Configuration.COLOR_TRANSPARENT);
+        mouseOverArea.setMouseOverColor(Configuration.COLOR_TRANSPARENT);
         link.render(gameContainer, graphics);
     }
 
     public void drawSubMenu(ComponentListener listener, String title, String subMenuTitle, MenuLink backLink) {
+        this.drawSubVerticalMenu();
         Graphics graphics = this.getGraphics();
         GameContainer gameContainer = this.getGameContainer();
         int x = (int) (width * Configuration.MENU_HEADING_WIDTH_RATIO);
@@ -164,45 +179,141 @@ public class GraphicsFacade {
 
         graphics.setColor(Configuration.MENU_FONT_COLOR);
         graphics.drawString(title, x, y);
-        int y1 = y + 2*ySpace;
+        int y1 = (int) (y + Configuration.HEADING_SPACE_MULTIPLIER*ySpace);
         graphics.drawString(subMenuTitle, x, y1);
         this.drawHeading(backLink, (int) (x + width * Configuration.MENU_HEADING_BACK_LINK_WIDTH_RADIO_SPACE),
                 y1, linkWidth, linkHeight, listener);
+
+
     }
 
+    public int drawTextAreaInput(TextAreaInput textInput, ComponentListener listener, int descriptionX, int descriptionY,
+            int descriptionWidth) {
+        return drawBaseTextInput(textInput, listener, descriptionX, descriptionY, descriptionWidth, Configuration.TEXT_AREA_INPUT_MAX_LENGTH,
+                Configuration.TEXT_AREA_INPUT_HEIGTH);
+    }
 
-    public void drawTextInput(TextInput textInput, ComponentListener listener) {
+    private int drawBaseTextInput(BaseTextField textInput, ComponentListener listener, int descriptionX, int descriptionY,
+            int descriptionWidth, int maxLength, int descriptionHeight) {
+        Font font = DEFAULT_FIELD_FONT;
+        String fieldName = textInput.getFieldName();
+        graphics.setFont(font);
+        int labelHeight = font.getHeight(fieldName);
+        int descriptionOffset = labelHeight + Configuration.FIELD_LABEL_SPACE;
         if(textInput.getTextField() == null) {
-            Integer width = this.getWidth();
-            Integer descriptionX = (int) (width * Configuration.MID_FIELD_WIDTH_RATIO);
-            Integer descriptionY = (int) (this.getHeight() * Configuration.MID_FIELD_HEIGTH_RATIO);
-            Integer descriptionWidth = Configuration.FIELD_WIDTH;
-            Integer descriptionHeight = Configuration.FIELD_HEIGTH;
-            textInput.setTextField(new TextField(this.getGameContainer(), DEFAULT_MENU_FONT, descriptionX, descriptionY,
-                    descriptionWidth, descriptionHeight));
+            textInput.setTextField(new TextField(this.getGameContainer(), font, descriptionX,
+                    descriptionY + descriptionOffset,
+                    descriptionWidth, descriptionHeight, listener));
+            textInput.getTextField().setMaxLength(maxLength);
         }
-        graphics.setColor(Color.white);
+        graphics.setColor(Configuration.LABEL_TEXT_COLOR);
+        graphics.drawString(fieldName,
+                (int) descriptionX,
+                (int) descriptionY);
 
-
+        graphics.setColor(Configuration.TEXT_INPUT_BACKGROUND_COLOR);
         TextField textField = textInput.getTextField();
-        textField.setFocus(true);
-        textField.setTextColor(Color.black);
-        textField.setBackgroundColor(Color.white);
+        textField.setTextColor(Configuration.TEXT_INPUT_TEXT_COLOR);
+        textField.setBackgroundColor(Configuration.TEXT_INPUT_BACKGROUND_COLOR);
         textField.render(this.getGameContainer(), this.getGraphics());
 
+        return descriptionHeight + descriptionOffset;
     }
 
-    public void drawContentBox() {
+    public int drawTextInput(TextInput textInput, ComponentListener listener, int descriptionX, int descriptionY,
+            int descriptionWidth) {
+        return drawBaseTextInput(textInput, listener, descriptionX, descriptionY, descriptionWidth, Configuration.TEXT_INPUT_MAX_LENGTH,
+                Configuration.FIELD_HEIGTH);
+    }
+
+    public void drawContent(ComponentListener listener, Object... items) {
         Integer width = this.getWidth();
-        Float leftBoarderLineX = width * Configuration.MENU_LEFT_BOARDER_SCREEN_RATIO;
-        Float rightBoarderLineX = width * (1 - Configuration.MENU_LEFT_BOARDER_SCREEN_RATIO);
+        Float leftBoarderLineX = width * Configuration.MENU_LEFT_BOARDER_CONTENT_BOX_RATIO;
+        Float rightBoarderLineX = width * Configuration.MENU_RIGHT_BOARDER_CONTENT_BOX_RATIO;
         Integer height = this.getHeight();
-        int minY = (int) (height * Configuration.MENU_CONTENT_BOX_HEIGHT_RATIO);
-        this.drawPairOfVerticalLines(minY, height, leftBoarderLineX, rightBoarderLineX);
+        int minY = 0;
+        this.drawContentBox(leftBoarderLineX, rightBoarderLineX, height, minY);
+
+        int initialY = minY + Configuration.CONTENT_MARGIN;
+        int initialX = (int) (leftBoarderLineX + Configuration.CONTENT_MARGIN);
+        int availableWidtht = (int) (rightBoarderLineX - leftBoarderLineX - Configuration.CONTENT_MARGIN * Configuration.CONTENT_MARGIN_MULTIPLIER);
+        for(Object item : items){
+            int itemHeight = 0;
+            if(item instanceof IconUploader){
+                itemHeight = this.drawIconUploader((IconUploader) item, listener, initialX, initialY);
+            } else if(item instanceof TextInput){
+                itemHeight = this.drawTextInput((TextInput) item, listener, initialX, initialY, availableWidtht);
+            } else if(item  instanceof TextAreaInput){
+                itemHeight = this.drawTextAreaInput((TextAreaInput) item, listener, initialX, initialY, availableWidtht);
+            } else if(item instanceof Table){
+                //itemHeight = this.drawTable((Table) item, listener, initialX, initialY, availableWidtht);
+            }
+            initialY += Configuration.CONTENT_MARGIN + itemHeight;
+        }
+    }
+
+    private int drawTable(Table item, ComponentListener listener, int initialX, int initialY, int availableWidtht) {
+        //gui.setPosition(initialX, initialX);
+        int childIndex = gui.getChildIndex(item);
+        if(childIndex < 0){
+            gui.setRootPane(item);
+        }
+        item.setPosition(initialX, initialX);
+        item.setMaxSize(Configuration.TABLE_MAX_HEIGHT, availableWidtht);
+        gui.draw();
+        return item.getHeight();
+    }
+
+    private void drawContentBox(float leftBoarderLineX, float rightBoarderLineX, float boxHeight, Integer minY) {
+        graphics.setColor(Configuration.MENU_TRANSPARENT_BACKGROUND_COLOR);
+        graphics.fillRect(leftBoarderLineX, minY, rightBoarderLineX - leftBoarderLineX, boxHeight);
+        this.drawPairOfVerticalLines(minY, (int) boxHeight, leftBoarderLineX, rightBoarderLineX);
         graphics.drawLine(leftBoarderLineX, minY, rightBoarderLineX, minY);
     }
 
     public void quit() {
         this.getGameContainer().exit();
+    }
+
+    public int drawIconUploader(IconUploader icon, ComponentListener listener, int iconX, int iconY) {
+        graphics.setFont(DEFAULT_FIELD_FONT);
+        Integer iconWidth = Configuration.ICON_UPLOADER_WIDTH;
+        Integer iconHeight = Configuration.ICON_UPLOADER_HEIGTH;
+        if(icon.getMouseOverArea() == null) {
+            icon.setMouseOverArea(new MouseOverArea(this.getGameContainer(),
+                    null, iconX, iconY, iconWidth, iconHeight, listener));
+            MouseOverArea mouseOverArea = icon.getMouseOverArea();
+            mouseOverArea.setMouseOverColor(Configuration.COLOR_TRANSPARENT);
+            mouseOverArea.setNormalColor(Configuration.COLOR_TRANSPARENT);
+        }
+        icon.getMouseOverArea().render(this.getGameContainer(), this.getGraphics());
+        Image image = icon.getImage();
+        if(image != null){
+            image.draw(iconX, iconY);
+        } else{
+            graphics.setColor(Configuration.ICON_BACKGROUND_COLOR);
+            graphics.fillRect(iconX, iconY, iconWidth, iconHeight);
+            graphics.setColor(Configuration.ICON_LABEL_COLOR);
+            graphics.drawString(Label.ADD_ICON_MESSAGE, iconWidth/2 + iconX - (DEFAULT_FIELD_FONT.getWidth(Label.ADD_ICON_MESSAGE)) /2,
+                    iconY + iconHeight / 2);
+        }
+        return iconHeight;
+    }
+
+    public Image getBGImage() {
+        try {
+            return new Image(Configuration.BG_REF);
+        } catch (SlickException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
+    }
+
+    public GUI getGui() {
+        return gui;
+    }
+
+    public void setGui(GUI gui) {
+        this.gui = gui;
     }
 }

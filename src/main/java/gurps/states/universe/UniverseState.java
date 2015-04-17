@@ -53,7 +53,7 @@ public class UniverseState extends State {
     @Override
     public void stateDraw() {
         GraphicsFacade facade = getFacade();
-        facade.drawMenuBackground();
+        facade.drawBackground();
         facade.drawVerticalMenu();
         facade.drawMenuHeadings(this, this.getTitle(), this.getBack(), this.getLinks());
     }

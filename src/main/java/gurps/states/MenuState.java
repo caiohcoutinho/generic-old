@@ -40,8 +40,7 @@ public class MenuState extends State implements ComponentListener{
 
     public void stateDraw() {
         GraphicsFacade facade = getFacade();
-        facade.drawMenuBackground();
-        facade.drawVerticalMenu();
+        facade.drawBackground();
         facade.drawMenuHeadings(this, this.getTitle(), this.getLinks());
     }
 

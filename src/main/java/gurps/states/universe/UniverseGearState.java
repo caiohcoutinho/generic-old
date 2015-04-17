@@ -1,15 +1,16 @@
 package gurps.states.universe;
 
+import de.matthiasmann.twl.Table;
+import de.matthiasmann.twl.renderer.AnimationState;
 import gurps.application.Label;
 import gurps.graphics.GraphicsFacade;
-import gurps.graphics.components.MenuLink;
-import gurps.graphics.components.TextInput;
+import gurps.graphics.components.*;
 import gurps.states.State;
+import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
-import org.newdawn.slick.Input;
 import org.newdawn.slick.gui.AbstractComponent;
 
-import javax.swing.*;
+import javax.swing.table.TableModel;
 
 /**
  * Created by Caio on 15/04/2015.
@@ -20,17 +21,25 @@ public class UniverseGearState extends State {
     private String subMenuTitle;
     private MenuLink backLink;
     private State nextState;
+    private TextInput name;
+    private IconUploader icon;
     private TextInput description;
+    private Table table;
 
     public UniverseGearState() {
         this.title = Label.UNIVERSE;
         this.subMenuTitle = Label.GEAR;
         this.backLink = new MenuLink(Label.BACK);
-        this.description = new TextInput(Label.GEAR_DESCRIPTION);
+        this.name = new TextInput(Label.GEAR_NAME, Label.GEAR_NAME);
+        this.icon = new IconUploader();
+        this.description = new TextInput(Label.GEAR_DESCRIPTION, Label.GEAR_DESCRIPTION); // TODO: Usar TextArea
+        this.table = new Table(new GearTableModel());
     }
 
     @Override
     public State iterate(GameContainer container, int delta) {
+        this.getName().react();
+        this.getDescription().react();
         if(this.getNextState() != null){
             return this.getNextState();
         }
@@ -40,18 +49,19 @@ public class UniverseGearState extends State {
     @Override
     public void stateDraw() {
         GraphicsFacade facade = getFacade();
-        facade.drawMenuBackground();
-        facade.drawTextInput(this.getDescription(), this);
-        facade.drawSubVerticalMenu();
-        facade.drawContentBox();
+        facade.drawBackground();
+
         facade.drawSubMenu(this, this.getTitle(), this.getSubMenuTitle(), this.getBackLink());
+        facade.drawContent(this, this.getIcon(), this.getName(), this.getDescription(), this.getTable());
+
+        facade.getGui().update();
     }
 
     public void componentActivated(AbstractComponent source) {
         if(this.getBackLink().getMouseOverArea().equals(source)){
             this.setNextState(new UniverseState());
-        } else if(this.getDescription().getTextField().equals(source)){
-            
+        } else if (this.getIcon().getMouseOverArea().equals(source)){
+            this.getIcon().addImage();
         }
     }
 
@@ -87,11 +97,36 @@ public class UniverseGearState extends State {
         this.nextState = nextState;
     }
 
+    public TextInput getName() {
+        return name;
+    }
+
+    public void setName(TextInput name) {
+        this.name = name;
+    }
+
+
+    public IconUploader getIcon() {
+        return icon;
+    }
+
+    public void setIcon(IconUploader icon) {
+        this.icon = icon;
+    }
+
     public TextInput getDescription() {
         return description;
     }
 
     public void setDescription(TextInput description) {
         this.description = description;
+    }
+
+    public Table getTable() {
+        return table;
+    }
+
+    public void setTable(Table table) {
+        this.table = table;
     }
 }
