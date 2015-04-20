@@ -33,7 +33,7 @@ public class TrueTypeFont implements org.newdawn.slick.Font {
     private IntObject[] charArray = new IntObject[256];
 
     /**
-     * Map of user defined font characters (Character <-> IntObject)
+     * Map of user defined font characters (GurpsCharacter <-> IntObject)
      */
     private Map customChars = new HashMap();
 
@@ -390,22 +390,22 @@ public class TrueTypeFont implements org.newdawn.slick.Font {
      */
     private class IntObject {
         /**
-         * Character's width
+         * GurpsCharacter's width
          */
         public int width;
 
         /**
-         * Character's height
+         * GurpsCharacter's height
          */
         public int height;
 
         /**
-         * Character's stored x position
+         * GurpsCharacter's stored x position
          */
         public int storedX;
 
         /**
-         * Character's stored y position
+         * GurpsCharacter's stored y position
          */
         public int storedY;
     }
